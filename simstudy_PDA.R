@@ -39,10 +39,28 @@ source("fns/run_PDA.R")
 source("fns/run_many_PDA.R")
 
 # parameter combinations for experiment
+
+# first pars with no interactions (so don't need to vary pars related to interactions)
 nproj <- c(50)
 budget <- c(0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
-my_alpha <- c(0, 3, 6)
-my_gamma <- c(0, 0.5, 1)
+my_alpha <- c(0)
+my_gamma <- c(0)
+my_selprob <- c("equal")
+interaction_pool <- c(10)
+random_nested = c(0, 1)
+neg_int_nint_multiplier <- c(1)
+neg_int_BC_multiplier <- -c(0)
+bp_type <- c("uni", "pos", "neg")
+
+pars_noint <- expand.grid(nproj = nproj, budget = budget, my_selprob = my_selprob, my_alpha = my_alpha, random_nested = random_nested, 
+                          interaction_pool = interaction_pool, my_gamma = my_gamma,
+                          neg_int_nint_multiplier = neg_int_nint_multiplier, neg_int_BC_multiplier = neg_int_BC_multiplier,
+                          bp_type = bp_type, stringsAsFactors = FALSE)
+
+nproj <- c(50)
+budget <- c(0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
+my_alpha <- c(3, 6)
+my_gamma <- c(0.5, 1)
 my_selprob <- c("equal","prop","invprop")
 interaction_pool <- c(10)
 random_nested = c(0, 1)
@@ -50,11 +68,12 @@ neg_int_nint_multiplier <- c(0.5, 1.5)
 neg_int_BC_multiplier <- -c(0.5, 1.5)
 bp_type <- c("uni", "pos", "neg")
 
-pars <- expand.grid(nproj = nproj, budget = budget, my_selprob = my_selprob, my_alpha = my_alpha, random_nested = random_nested, 
-                    interaction_pool = interaction_pool, my_gamma = my_gamma,
-                    neg_int_nint_multiplier = neg_int_nint_multiplier, neg_int_BC_multiplier = neg_int_BC_multiplier,
-                    bp_type = bp_type, stringsAsFactors = FALSE)
+pars_withint <- expand.grid(nproj = nproj, budget = budget, my_selprob = my_selprob, my_alpha = my_alpha, random_nested = random_nested, 
+                            interaction_pool = interaction_pool, my_gamma = my_gamma,
+                            neg_int_nint_multiplier = neg_int_nint_multiplier, neg_int_BC_multiplier = neg_int_BC_multiplier,
+                            bp_type = bp_type, stringsAsFactors = FALSE)
 
+pars <- rbind(pars_noint, pars_withint)
 
 # save these to concatenate later with results
 save(pars, file = "output/simstudy_pars.RData")
@@ -82,52 +101,15 @@ save(pars, file = "output/simstudy_pars.RData")
 # run the whole experiment, but divide the pars into a few sets so that you don't lose everything if it crashes
 all_pars <- pars
 
-set.seed(1234)
+# set.seed(1234)
 
-pars <- all_pars[1:1000, ]
-res1 <- pmap_dfr(list(nproj = pars$nproj, my_budget_perc = pars$budget, my_selprob = pars$my_selprob, my_alpha = pars$my_alpha, 
+start_row <- 1
+n_to_run <- 200
+pars <- all_pars[start_row:(start_row + n_to_run - 1), ]
+res <- pmap_dfr(list(nproj = pars$nproj, my_budget_perc = pars$budget, my_selprob = pars$my_selprob, my_alpha = pars$my_alpha, 
                  random_nested = pars$random_nested, interaction_pool = pars$interaction_pool, my_gamma = pars$my_gamma,
                  neg_int_nint_multiplier = pars$neg_int_nint_multiplier, neg_int_BC_multiplier = pars$neg_int_BC_multiplier,
                  bp_type = pars$bp_type), run_many_PDA)
 
-save(res1, file = "output/PDA_simulation_results_1.RData")
-
-pars <- all_pars[1001:2000, ]
-res2 <- pmap_dfr(list(nproj = pars$nproj, my_budget_perc = pars$budget, my_selprob = pars$my_selprob, my_alpha = pars$my_alpha, 
-                      random_nested = pars$random_nested, interaction_pool = pars$interaction_pool, my_gamma = pars$my_gamma,
-                      neg_int_nint_multiplier = pars$neg_int_nint_multiplier, neg_int_BC_multiplier = pars$neg_int_BC_multiplier,
-                      bp_type = pars$bp_type), run_many_PDA)
-
-save(res2, file = "output/PDA_simulation_results_2.RData")
-
-pars <- all_pars[2001:3000, ]
-res3 <- pmap_dfr(list(nproj = pars$nproj, my_budget_perc = pars$budget, my_selprob = pars$my_selprob, my_alpha = pars$my_alpha, 
-                      random_nested = pars$random_nested, interaction_pool = pars$interaction_pool, my_gamma = pars$my_gamma,
-                      neg_int_nint_multiplier = pars$neg_int_nint_multiplier, neg_int_BC_multiplier = pars$neg_int_BC_multiplier,
-                      bp_type = pars$bp_type), run_many_PDA)
-
-save(res3, file = "output/PDA_simulation_results_3.RData")
-
-pars <- all_pars[3001:4000, ]
-res4 <- pmap_dfr(list(nproj = pars$nproj, my_budget_perc = pars$budget, my_selprob = pars$my_selprob, my_alpha = pars$my_alpha, 
-                      random_nested = pars$random_nested, interaction_pool = pars$interaction_pool, my_gamma = pars$my_gamma,
-                      neg_int_nint_multiplier = pars$neg_int_nint_multiplier, neg_int_BC_multiplier = pars$neg_int_BC_multiplier,
-                      bp_type = pars$bp_type), run_many_PDA)
-
-save(res4, file = "output/PDA_simulation_results_4.RData")
-
-pars <- all_pars[4001:5000, ]
-res5 <- pmap_dfr(list(nproj = pars$nproj, my_budget_perc = pars$budget, my_selprob = pars$my_selprob, my_alpha = pars$my_alpha, 
-                      random_nested = pars$random_nested, interaction_pool = pars$interaction_pool, my_gamma = pars$my_gamma,
-                      neg_int_nint_multiplier = pars$neg_int_nint_multiplier, neg_int_BC_multiplier = pars$neg_int_BC_multiplier,
-                      bp_type = pars$bp_type), run_many_PDA)
-
-save(res5, file = "output/PDA_simulation_results_5.RData")
-
-pars <- all_pars[5001:6000, ]
-res6 <- pmap_dfr(list(nproj = pars$nproj, my_budget_perc = pars$budget, my_selprob = pars$my_selprob, my_alpha = pars$my_alpha, 
-                      random_nested = pars$random_nested, interaction_pool = pars$interaction_pool, my_gamma = pars$my_gamma,
-                      neg_int_nint_multiplier = pars$neg_int_nint_multiplier, neg_int_BC_multiplier = pars$neg_int_BC_multiplier,
-                      bp_type = pars$bp_type), run_many_PDA)
-
-save(res6, file = "output/PDA_simulation_results_6.RData")
+saveRDS(res, file = paste0("output/PDA_simulation_results_",
+                         start_row,"_",(start_row + n_to_run - 1),".rds"))
